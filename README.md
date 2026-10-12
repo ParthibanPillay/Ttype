@@ -4,6 +4,24 @@ A Monkeytype-style typing test for the terminal. Local only: no accounts, no ser
 
 ## Install
 
+### Prebuilt (no Rust needed)
+
+Once a release exists, on Linux/macOS:
+
+```
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ParthibanPillay/Ttype/releases/latest/download/ttest-installer.sh | sh
+```
+
+On Windows (PowerShell):
+
+```
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/ParthibanPillay/Ttype/releases/latest/download/ttest-installer.ps1 | iex"
+```
+
+Or download a binary from the [Releases page](https://github.com/ParthibanPillay/Ttype/releases).
+
+### From source
+
 1. Install Rust 1.85 or newer (the project uses edition 2024) via [rustup](https://rustup.rs):
 
    ```
@@ -69,3 +87,13 @@ Each finished test appends a JSON line to `~/.local/share/ttest/history.jsonl`:
 - No typing past the end of a word; a wrong key just takes the next slot.
 - Time mode uses a fixed pool of 300 words.
 - Long lines may wrap mid-word.
+
+## Releasing (maintainer)
+
+```
+# bump version in Cargo.toml, commit, then:
+git tag v0.1.0
+git push origin main --tags
+```
+
+The tag triggers `.github/workflows/release.yml`, which builds binaries and installers and publishes the GitHub Release.
