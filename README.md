@@ -2,13 +2,35 @@
 
 A Monkeytype-style typing test for the terminal. Local only: no accounts, no server.
 
-## Run
+## Install
 
-```
-cargo run --release
-```
+1. Install Rust 1.85 or newer (the project uses edition 2024) via [rustup](https://rustup.rs):
 
-Requires Rust (stable).
+   ```
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+   On Windows, download `rustup-init.exe` from the same site. Check with `rustc --version`; if it is older than 1.85, run `rustup update`.
+
+2. Clone and install:
+
+   ```
+   git clone https://github.com/ParthibanPillay/Ttype.git
+   cd Ttype
+   cargo install --path .
+   ```
+
+3. Run it from anywhere:
+
+   ```
+   ttest
+   ```
+
+   If the command is not found, add `~/.cargo/bin` to your `PATH`.
+
+To try it without installing, run `cargo run --release` inside the cloned folder.
+
+To uninstall: `cargo uninstall ttest`.
 
 ## Keys
 
