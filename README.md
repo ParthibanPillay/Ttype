@@ -4,51 +4,42 @@ A Monkeytype-style typing test for the terminal. Local only: no accounts, no ser
 
 ## Install
 
-### Prebuilt (no Rust needed)
+Clone the repo, build, and install. Needs Rust 1.85 or newer.
 
-Once a release exists, on Linux/macOS:
-
-```
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ParthibanPillay/Ttype/releases/latest/download/ttest-installer.sh | sh
-```
-
-On Windows (PowerShell):
+### Ubuntu / Debian
 
 ```
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/ParthibanPillay/Ttype/releases/latest/download/ttest-installer.ps1 | iex"
+sudo apt install git build-essential rustup
+rustup default stable
+git clone https://github.com/ParthibanPillay/Ttype.git
+cd Ttype
+cargo install --path .
+ttest
 ```
 
-Or download a binary from the [Releases page](https://github.com/ParthibanPillay/Ttype/releases).
+### Arch Linux
 
-### From source
+```
+sudo pacman -S git base-devel rust
+git clone https://github.com/ParthibanPillay/Ttype.git
+cd Ttype
+cargo install --path .
+ttest
+```
 
-1. Install Rust 1.85 or newer (the project uses edition 2024) via [rustup](https://rustup.rs):
+### Windows
 
-   ```
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
+In PowerShell (also install the "Desktop development with C++" workload from Visual Studio Build Tools):
 
-   On Windows, download `rustup-init.exe` from the same site. Check with `rustc --version`; if it is older than 1.85, run `rustup update`.
+```
+winget install Git.Git Rustlang.Rustup
+git clone https://github.com/ParthibanPillay/Ttype.git
+cd Ttype
+cargo install --path .
+ttest
+```
 
-2. Clone and install:
-
-   ```
-   git clone https://github.com/ParthibanPillay/Ttype.git
-   cd Ttype
-   cargo install --path .
-   ```
-
-3. Run it from anywhere:
-
-   ```
-   ttest
-   ```
-
-   If the command is not found, add `~/.cargo/bin` to your `PATH`.
-
-To try it without installing, run `cargo run --release` inside the cloned folder.
-
-To uninstall: `cargo uninstall ttest`.
+If `ttest` is not found, add `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows) to your `PATH`.
 
 ## Keys
 
