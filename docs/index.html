@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="ttype is a fast, local-first Monkeytype-style typing test for your terminal." />
+    <title>ttype — terminal typing tests</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0f0d;
+        --panel: #101915;
+        --panel-strong: #141f1a;
+        --line: #2b4035;
+        --text: #d9e7de;
+        --muted: #82958a;
+        --green: #79f2a3;
+        --green-dim: #43bb70;
+        --yellow: #f5d56f;
+        --red: #ff8585;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(circle at 85% 0%, #163b272f, transparent 28rem),
+          var(--bg);
+        color: var(--text);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        line-height: 1.55;
+      }
+
+      a { color: inherit; }
+
+      .shell { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; }
+
+      nav {
+        min-height: 5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand { color: var(--green); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.06em; text-decoration: none; }
+      .brand::before { content: ">_ "; color: var(--yellow); }
+      .nav-links { display: flex; align-items: center; gap: 1rem; font-size: .85rem; }
+      .nav-links a { color: var(--muted); text-decoration: none; }
+      .nav-links a:hover, .nav-links a:focus-visible { color: var(--green); }
+
+      .github-link, .button {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        border: 1px solid var(--green-dim);
+        color: var(--green) !important;
+        padding: .55rem .8rem;
+        text-decoration: none;
+        transition: background .18s ease, transform .18s ease;
+      }
+
+      .github-link:hover, .button:hover { background: #79f2a315; transform: translateY(-2px); }
+
+      main { padding: clamp(4rem, 10vw, 8rem) 0 4rem; }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(22rem, .9fr);
+        gap: clamp(2.5rem, 7vw, 6rem);
+        align-items: center;
+      }
+
+      .eyebrow { color: var(--green); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
+      h1 { max-width: 11ch; margin: .65rem 0 1.25rem; font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .98; letter-spacing: -.08em; }
+      .lead { max-width: 36rem; color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem); }
+      .actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2rem; }
+      .button { font-weight: 700; }
+      .button.primary { background: var(--green); color: #061008 !important; }
+      .button.primary:hover { background: #a0ffbd; }
+
+      .terminal {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: .55rem;
+        background: var(--panel);
+        box-shadow: 0 1.5rem 4rem #00000055;
+      }
+
+      .terminal-bar { display: flex; align-items: center; gap: .45rem; padding: .75rem 1rem; background: var(--panel-strong); border-bottom: 1px solid var(--line); }
+      .dot { width: .65rem; height: .65rem; border-radius: 50%; background: var(--red); }
+      .dot:nth-child(2) { background: var(--yellow); }
+      .dot:nth-child(3) { background: var(--green); }
+      .terminal-title { margin-left: .35rem; color: var(--muted); font-size: .75rem; }
+      .terminal-body { padding: 1.25rem; font-size: clamp(.78rem, 1.5vw, .95rem); }
+      .scoreline { color: var(--yellow); margin-bottom: 1.15rem; white-space: nowrap; }
+      .words { color: var(--muted); line-height: 2.1; }
+      .words .correct { color: var(--green); }
+      .words .wrong { color: var(--red); text-decoration: underline; }
+      .cursor { display: inline-block; width: .58em; height: 1.15em; margin: 0 .08em -.22em; background: var(--green); animation: blink 1s step-end infinite; }
+      .terminal-footer { margin-top: 1.2rem; color: var(--muted); font-size: .76rem; }
+      .terminal-footer kbd { border: 1px solid var(--line); border-bottom-width: 2px; padding: .1rem .3rem; color: var(--text); font-family: inherit; }
+
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: clamp(4rem, 10vw, 8rem) 0; background: var(--line); border: 1px solid var(--line); }
+      .stat { padding: 1.25rem; background: var(--panel); }
+      .stat strong { display: block; color: var(--green); font-size: 1.4rem; }
+      .stat span { color: var(--muted); font-size: .78rem; }
+
+      .section-label { color: var(--yellow); font-size: .8rem; }
+      h2 { margin: .45rem 0 2rem; font-size: clamp(1.8rem, 4vw, 3rem); letter-spacing: -.06em; }
+      .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+      .feature { padding: 1.35rem; border: 1px solid var(--line); background: linear-gradient(140deg, var(--panel), #0e1511); }
+      .feature-number { color: var(--green); font-size: .8rem; }
+      .feature h3 { margin: .85rem 0 .45rem; font-size: 1rem; }
+      .feature p { margin: 0; color: var(--muted); font-size: .9rem; }
+
+      .install { margin-top: clamp(4rem, 8vw, 6rem); padding: clamp(1.25rem, 4vw, 2.5rem); border: 1px solid var(--line); background: var(--panel); }
+      .install-grid { display: grid; grid-template-columns: 1fr minmax(16rem, .8fr); gap: 2rem; align-items: center; }
+      .install h2 { margin-bottom: .5rem; }
+      .install p { color: var(--muted); }
+      pre { overflow-x: auto; margin: 0; padding: 1.25rem; border-left: 3px solid var(--green-dim); background: #080c0a; color: var(--text); font: .85rem/1.8 inherit; }
+      code .prompt { color: var(--green); }
+
+      footer { padding: 2rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
+      footer .shell { display: flex; justify-content: space-between; gap: 1rem; }
+      footer a { color: var(--green); }
+
+      @keyframes blink { 50% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .cursor { animation: none; } }
+      @media (max-width: 760px) {
+        nav { min-height: 4.25rem; }
+        .nav-links a:not(.github-link) { display: none; }
+        .hero, .install-grid { grid-template-columns: 1fr; }
+        .features { grid-template-columns: 1fr; }
+        main { padding-top: 3.5rem; }
+      }
+      @media (max-width: 420px) { .stats { grid-template-columns: 1fr; } footer .shell { display: block; } }
+    </style>
+  </head>
+  <body>
+    <header class="shell">
+      <nav aria-label="Primary navigation">
+        <a class="brand" href="#top">ttype</a>
+        <div class="nav-links">
+          <a href="#features">features</a>
+          <a href="#install">install</a>
+          <a class="github-link" href="https://github.com/ParthibanPillay/Ttype">↗ GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top" class="shell">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="eyebrow">local-first typing tests</div>
+          <h1 id="hero-title">Find your flow in the terminal.</h1>
+          <p class="lead">ttype is a focused, Monkeytype-style typing test built for people who feel at home at a prompt. No accounts, no browser tabs, no distractions.</p>
+          <div class="actions">
+            <a class="button primary" href="#install">$ cargo install</a>
+            <a class="button" href="https://github.com/ParthibanPillay/Ttype">view source ↗</a>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="ttype terminal preview">
+          <div class="terminal-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="terminal-title">ttype — time 30s</span></div>
+          <div class="terminal-body">
+            <div class="scoreline">time 30s&nbsp;&nbsp; 24&nbsp;&nbsp; 84 wpm</div>
+            <div class="words"><span class="correct">quick brown fox jumps over</span> <span class="wrong">the</span> <span class="correct">quiet terminal while</span><br /><span class="correct">fingers find their rhythm and</span> <span class="cursor" aria-hidden="true"></span><br />measure each moment with care</div>
+            <div class="terminal-footer"><kbd>Ctrl+T</kbd> mode&nbsp; <kbd>Ctrl+L</kbd> history&nbsp; <kbd>Tab</kbd> restart</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Project highlights">
+        <div class="stat"><strong>6 modes</strong><span>15s, 30s, 60s and word-count tests</span></div>
+        <div class="stat"><strong>0 accounts</strong><span>Your data stays local to your machine</span></div>
+        <div class="stat"><strong>4 metrics</strong><span>WPM, raw speed, accuracy, consistency</span></div>
+      </section>
+
+      <section id="features" aria-labelledby="features-title">
+        <div class="section-label">// built for the prompt</div>
+        <h2 id="features-title">Everything you need. Nothing between you and the words.</h2>
+        <div class="features">
+          <article class="feature"><div class="feature-number">01 / FOCUS</div><h3>Terminal-native</h3><p>A responsive Ratatui interface with keyboard-first controls, designed to keep your hands on the keys.</p></article>
+          <article class="feature"><div class="feature-number">02 / SIGNAL</div><h3>Meaningful metrics</h3><p>See correct WPM, raw speed, accuracy, and a per-second consistency measure after each run.</p></article>
+          <article class="feature"><div class="feature-number">03 / MEMORY</div><h3>Local history</h3><p>Finished tests are stored as plain JSONL on your machine, with personal bests and an in-app history chart.</p></article>
+        </div>
+      </section>
+
+      <section id="install" class="install" aria-labelledby="install-title">
+        <div class="install-grid">
+          <div>
+            <div class="section-label">// one command away</div>
+            <h2 id="install-title">Start typing.</h2>
+            <p>Requires Rust 1.85 or newer. Install directly from the cloned repository, then launch <code>ttype</code>.</p>
+          </div>
+          <pre><code><span class="prompt">$</span> git clone https://github.com/ParthibanPillay/Ttype.git
+<span class="prompt">$</span> cd Ttype
+<span class="prompt">$</span> cargo install --path .
+<span class="prompt">$</span> ttype</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell"><span>ttype — type with intent.</span><a href="https://github.com/ParthibanPillay/Ttype">github.com/ParthibanPillay/Ttype ↗</a></div>
+    </footer>
+  </body>
+</html>

@@ -2,6 +2,10 @@
 
 A Monkeytype-style typing test for the terminal. Local only: no accounts, no server.
 
+## Website
+
+The terminal-style project site lives at [parthibanpillay.github.io/Ttype](https://parthibanpillay.github.io/Ttype/). To publish it, open the repository's **Settings → Pages**, select **GitHub Actions** as the source, and push to `main`. The workflow deploys the static files in `docs/`.
+
 ## Install
 
 Clone the repo, build, and install. Needs Rust 1.85 or newer.
