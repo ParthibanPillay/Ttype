@@ -27,16 +27,41 @@ pub fn draw(f: &mut Frame, t: &Test) {
             .style(Style::new().fg(Color::Yellow)),
         head,
     );
-    let spans: Vec<Span> = t
-        .target
-        .iter()
-        .enumerate()
-        .map(|(i, &c)| match t.typed.get(i) {
-            Some(&k) if k == c => Span::styled(c.to_string(), Color::Green),
-            Some(_) => Span::styled(c.to_string(), Style::new().fg(Color::Red).underlined()),
-            None if i == t.typed.len() => Span::styled(c.to_string(), Style::new().reversed()),
-            None => Span::styled(c.to_string(), Color::DarkGray),
+    // Monkeytype-style: show 3 lines, keep the cursor on the 2nd, scroll as lines are finished.
+    let (n, w) = (t.target.len(), body.width as usize);
+    let mut starts = vec![0];
+    let (mut col, mut i) = (0, 0);
+    while i < n {
+        let j = t.target[i..].iter().position(|&c| c == ' ').map_or(n, |p| i + p + 1); // word + trailing space
+        let vis = if t.target[j - 1] == ' ' { j - i - 1 } else { j - i };
+        if col > 0 && col + vis > w {
+            starts.push(i);
+            col = 0;
+        }
+        col += j - i;
+        i = j;
+    }
+    starts.push(n);
+    let cur = starts.partition_point(|&s| s <= t.typed.len().min(n - 1)) - 1;
+    let top = cur.saturating_sub(1);
+    let lines: Vec<Line> = starts[top..]
+        .windows(2)
+        .take(3)
+        .map(|r| {
+            Line::from(
+                (r[0]..r[1])
+                    .map(|i| {
+                        let c = t.target[i];
+                        match t.typed.get(i) {
+                            Some(&k) if k == c => Span::styled(c.to_string(), Color::Green),
+                            Some(_) => Span::styled(c.to_string(), Style::new().fg(Color::Red).underlined()),
+                            None if i == t.typed.len() => Span::styled(c.to_string(), Style::new().reversed()),
+                            None => Span::styled(c.to_string(), Color::DarkGray),
+                        }
+                    })
+                    .collect::<Vec<_>>(),
+            )
         })
         .collect();
-    f.render_widget(Paragraph::new(Line::from(spans)).wrap(Wrap { trim: false }), body);
+    f.render_widget(Paragraph::new(lines), body);
 }
