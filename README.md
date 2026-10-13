@@ -1,4 +1,4 @@
-# ttest
+# ttype
 
 A Monkeytype-style typing test for the terminal. Local only: no accounts, no server.
 
@@ -14,7 +14,7 @@ rustup default stable
 git clone https://github.com/ParthibanPillay/Ttype.git
 cd Ttype
 cargo install --path .
-ttest
+ttype
 ```
 
 ### Arch Linux
@@ -24,7 +24,7 @@ sudo pacman -S git base-devel rust
 git clone https://github.com/ParthibanPillay/Ttype.git
 cd Ttype
 cargo install --path .
-ttest
+ttype
 ```
 
 ### Windows
@@ -36,10 +36,10 @@ winget install Git.Git Rustlang.Rustup
 git clone https://github.com/ParthibanPillay/Ttype.git
 cd Ttype
 cargo install --path .
-ttest
+ttype
 ```
 
-If `ttest` is not found, add `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows) to your `PATH`.
+If `ttype` is not found, add `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows) to your `PATH`.
 
 ## Keys
 
@@ -60,7 +60,7 @@ The timer starts on your first keypress.
 
 ## History
 
-Each finished test appends a JSON line to `~/.local/share/ttest/history.jsonl`:
+Each finished test appends a JSON line to `~/.local/share/ttype/history.jsonl`:
 
 ```json
 {"ts":1791460000,"mode":"time 15s","wpm":72.0,"raw":75.0,"acc":96.0}
