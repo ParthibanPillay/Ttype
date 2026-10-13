@@ -7,6 +7,9 @@ pub enum Mode {
     Words(usize),
 }
 
+/// Extra chars allowed past the end of a word.
+const MAX_EXTRA: usize = 10;
+
 pub const MODES: [Mode; 6] = [
     Mode::Time(15),
     Mode::Time(30),
@@ -26,8 +29,9 @@ impl Mode {
 }
 
 pub struct Test {
-    pub target: Vec<char>,
-    pub typed: Vec<char>,
+    pub words: Vec<Vec<char>>,
+    /// One entry per word reached; the last is the word being typed. May run past the word's length (extras).
+    pub typed: Vec<Vec<char>>,
     pub mode: Mode,
     started: Option<Instant>,
     pub keys: u32,
@@ -52,10 +56,9 @@ impl Test {
             Mode::Words(n) => n,
         };
         let mut rng = rand::rng();
-        let target = (0..n).map(|_| *words.choose(&mut rng).unwrap()).collect::<Vec<_>>().join(" ");
         Test {
-            target: target.chars().collect(),
-            typed: vec![],
+            words: (0..n).map(|_| words.choose(&mut rng).unwrap().chars().collect()).collect(),
+            typed: vec![vec![]],
             mode,
             started: None,
             keys: 0,
@@ -66,8 +69,16 @@ impl Test {
         }
     }
 
+    /// Correct chars, Monkeytype-style: fully correct finished words (+1 for the space), plus the correct prefix of the current word.
     pub fn correct(&self) -> usize {
-        self.typed.iter().zip(&self.target).filter(|(a, b)| a == b).count()
+        let cur = self.typed.len() - 1;
+        let done: usize = (0..cur).filter(|&i| self.typed[i] == self.words[i]).map(|i| self.words[i].len() + 1).sum();
+        done + if self.words[cur].starts_with(&self.typed[cur]) { self.typed[cur].len() } else { 0 }
+    }
+
+    /// Every char typed, wrong or right, plus a space per finished word.
+    fn typed_chars(&self) -> usize {
+        self.typed.iter().map(Vec::len).sum::<usize>() + self.typed.len() - 1
     }
 
     /// Seconds since first keypress (0 before start).
@@ -76,26 +87,51 @@ impl Test {
     }
 
     pub fn press(&mut self, c: char, now: Instant) {
-        if self.done.is_some() {
+        let i = self.typed.len() - 1;
+        if self.done.is_some() || (c == ' ' && self.typed[i].is_empty()) {
+            return;
+        }
+        if c != ' ' && self.typed[i].len() >= self.words[i].len() + MAX_EXTRA {
             return;
         }
         self.started.get_or_insert(now);
         self.keys += 1;
-        if self.typed.len() < self.target.len() {
-            if self.target[self.typed.len()] != c {
-                self.wrong_keys += 1;
+        let last = i + 1 == self.words.len();
+        if c == ' ' {
+            // space skips whatever is left of the word; it never counts as a mistake
+            if last {
+                self.done = Some(self.elapsed(now));
+            } else {
+                self.typed.push(vec![]);
             }
-            self.typed.push(c);
+            return;
         }
-        // ponytail: no extra chars past a word end; a wrong key just consumes the next slot
-        if matches!(self.mode, Mode::Words(_)) && self.typed.len() == self.target.len() {
+        if self.words[i].get(self.typed[i].len()) != Some(&c) {
+            self.wrong_keys += 1;
+        }
+        self.typed[i].push(c);
+        if last && self.typed[i] == self.words[i] {
             self.done = Some(self.elapsed(now));
         }
     }
 
     pub fn backspace(&mut self) {
+        let i = self.typed.len() - 1;
+        if self.done.is_some() {
+            return;
+        }
+        if self.typed[i].pop().is_none() && i > 0 && self.typed[i - 1] != self.words[i - 1] {
+            self.typed.pop(); // step back into a wrong word; correct words are locked
+        }
+    }
+
+    /// Ctrl/Alt+Backspace: clear the current word (stepping back into a wrong word first if it's empty).
+    pub fn backspace_word(&mut self) {
+        if self.typed.last().is_some_and(Vec::is_empty) {
+            self.backspace();
+        }
         if self.done.is_none() {
-            self.typed.pop();
+            self.typed.last_mut().unwrap().clear();
         }
     }
 
@@ -123,7 +159,7 @@ impl Test {
     pub fn stats(&self, now: Instant) -> Stats {
         let mins = (self.elapsed(now) / 60.0).max(1e-9);
         let wpm = self.correct() as f64 / 5.0 / mins;
-        let raw = self.typed.len() as f64 / 5.0 / mins;
+        let raw = self.typed_chars() as f64 / 5.0 / mins;
         let acc = if self.keys == 0 { 100.0 } else { 100.0 * (self.keys - self.wrong_keys) as f64 / self.keys as f64 };
         let n = self.samples.len() as f64;
         let mean = self.samples.iter().sum::<f64>() / n.max(1.0);
@@ -138,11 +174,21 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
+    fn set(t: &mut Test, text: &str) {
+        t.words = text.split(' ').map(|w| w.chars().collect()).collect();
+    }
+
+    fn type_str(t: &mut Test, text: &str, t0: Instant) {
+        for c in text.chars() {
+            t.press(c, t0);
+        }
+    }
+
     #[test]
     fn words_mode_metrics() {
         let mut t = Test::new(Mode::Words(10));
         let t0 = Instant::now();
-        t.target = "hello world".chars().collect(); // 11 chars
+        set(&mut t, "hello world"); // 11 chars
         for (i, c) in "hello world".chars().enumerate() {
             t.press(c, t0 + Duration::from_millis(i as u64 * 100));
         }
@@ -158,7 +204,7 @@ mod tests {
     fn mistake_hurts_accuracy_even_if_fixed() {
         let mut t = Test::new(Mode::Time(15));
         let t0 = Instant::now();
-        t.target = "ab".chars().collect();
+        set(&mut t, "ab");
         t.press('x', t0);
         t.backspace();
         t.press('a', t0);
@@ -174,5 +220,66 @@ mod tests {
         t.tick(t0 + Duration::from_secs(16));
         assert_eq!(t.done, Some(15.0));
         assert_eq!(t.samples.len(), 15);
+    }
+
+    #[test]
+    fn space_skips_rest_of_word() {
+        let mut t = Test::new(Mode::Time(15));
+        let t0 = Instant::now();
+        set(&mut t, "hello world again");
+        type_str(&mut t, "he world", t0);
+        assert_eq!(t.typed, vec![vec!['h', 'e'], "world".chars().collect()]);
+        assert_eq!(t.correct(), 5); // "he" is wrong as a word, so only "world" counts
+    }
+
+    #[test]
+    fn extras_stay_in_their_word() {
+        let mut t = Test::new(Mode::Time(15));
+        let t0 = Instant::now();
+        set(&mut t, "hi there");
+        type_str(&mut t, "hixx ", t0);
+        assert_eq!(t.typed[0].len(), 4);
+        assert_eq!(t.typed.len(), 2); // next word starts clean
+        assert_eq!(t.stats(t0).acc, 60.0); // h i ok, 2 extras wrong, space ok
+    }
+
+    #[test]
+    fn backspace_only_enters_wrong_words() {
+        let mut t = Test::new(Mode::Time(15));
+        let t0 = Instant::now();
+        set(&mut t, "ab cd ef");
+        type_str(&mut t, "ab ", t0);
+        t.backspace(); // "ab" is correct: locked
+        assert_eq!(t.typed.len(), 2);
+        type_str(&mut t, "x ", t0);
+        t.backspace();
+        t.backspace(); // back into wrong "x" word, then delete it
+        assert_eq!((t.typed.len(), t.typed[1].len()), (2, 0));
+    }
+
+    #[test]
+    fn backspace_word_clears_word_then_steps_back() {
+        let mut t = Test::new(Mode::Time(15));
+        let t0 = Instant::now();
+        set(&mut t, "ab cd ef");
+        type_str(&mut t, "ab cx", t0);
+        t.backspace_word();
+        assert_eq!((t.typed.len(), t.typed[1].len()), (2, 0));
+        t.backspace_word(); // "ab" is correct: stays locked
+        assert_eq!(t.typed.len(), 2);
+        type_str(&mut t, "xy ", t0);
+        t.backspace_word(); // empty -> back into wrong "xy" and clear it
+        assert_eq!((t.typed.len(), t.typed[1].len()), (2, 0));
+    }
+
+    #[test]
+    fn empty_word_space_ignored_and_last_space_finishes() {
+        let mut t = Test::new(Mode::Words(2));
+        let t0 = Instant::now();
+        set(&mut t, "ab cd");
+        t.press(' ', t0);
+        assert_eq!(t.keys, 0);
+        type_str(&mut t, "ab c ", t0);
+        assert!(t.done.is_some());
     }
 }
