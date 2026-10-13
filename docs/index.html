@@ -8,206 +8,151 @@
     <style>
       :root {
         color-scheme: dark;
-        --bg: #0a0f0d;
-        --panel: #101915;
-        --panel-strong: #141f1a;
-        --line: #2b4035;
-        --text: #d9e7de;
-        --muted: #82958a;
-        --green: #79f2a3;
-        --green-dim: #43bb70;
-        --yellow: #f5d56f;
-        --red: #ff8585;
+        --bg: #000;
+        --line: #2e2418;
+        --text: #f0e6da;
+        --muted: #8a7f73;
+        --accent: #ff8c1a;
+        --accent-dim: #c26a10;
+        --red: #ff5c5c;
       }
-
       * { box-sizing: border-box; }
-
-      html { scroll-behavior: smooth; }
-
       body {
         margin: 0;
-        min-width: 320px;
-        background:
-          radial-gradient(circle at 85% 0%, #163b272f, transparent 28rem),
-          var(--bg);
+        background: radial-gradient(circle at 85% 0%, #ff8c1a1f, transparent 28rem), var(--bg);
         color: var(--text);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-        line-height: 1.55;
+        font: 15px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .shell { width: min(720px, calc(100% - 2rem)); margin: 0 auto; }
 
-      a { color: inherit; }
+      nav { display: flex; justify-content: space-between; padding: 1.5rem 0; }
+      .brand { font-weight: 800; }
+      .brand::before { content: ">_ "; color: var(--muted); }
 
-      .shell { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; }
+      h1 { margin: 5rem 0 1rem; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; letter-spacing: -.04em; }
+      .lead { color: var(--muted); margin: 0 0 2rem; }
 
-      nav {
-        min-height: 5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--line);
+      .terminal { border: 1px solid var(--line); padding: 1.25rem; }
+      .scoreline { color: var(--accent); margin-bottom: 1rem; }
+      .words { color: var(--muted); line-height: 2; }
+      .correct { color: var(--accent); }
+      .wrong { color: var(--red); text-decoration: underline; }
+      .cursor { display: inline-block; width: .6em; height: 1.1em; margin-bottom: -.2em; background: var(--accent); animation: blink 1s step-end infinite; }
+      .keys { margin-top: 1rem; color: var(--muted); font-size: .8rem; }
+      kbd { border: 1px solid var(--line); padding: 0 .3rem; font: inherit; color: var(--text); }
+
+      section { margin-top: 4rem; }
+      h2 { margin: 0 0 1rem; font-size: 1rem; color: var(--accent); font-weight: 400; }
+      h2::before { content: "# "; color: var(--muted); }
+      ul { margin: 0; padding: 0; list-style: none; color: var(--muted); }
+      li { padding: .25rem 0; }
+      li b { color: var(--text); font-weight: 400; }
+
+      .install { position: relative; }
+      pre { margin: 0; padding: 1.25rem 3.5rem 1.25rem 1.25rem; border: 1px solid var(--line); overflow-x: auto; }
+      .prompt { color: var(--accent); user-select: none; }
+      .copy {
+        position: absolute; top: .6rem; right: .6rem; width: 2rem; height: 2rem;
+        display: grid; place-items: center; padding: 0;
+        background: none; border: 1px solid var(--line); color: var(--muted); cursor: pointer;
       }
+      .copy:hover, .copy:focus-visible { color: var(--accent); border-color: var(--accent); }
+      .copy svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .copy .ok, .copy.done .cp { display: none; }
+      .copy.done .ok { display: block; color: var(--accent); }
 
-      .brand { color: var(--green); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.06em; text-decoration: none; }
-      .brand::before { content: ">_ "; color: var(--yellow); }
-      .nav-links { display: flex; align-items: center; gap: 1rem; font-size: .85rem; }
-      .nav-links a { color: var(--muted); text-decoration: none; }
-      .nav-links a:hover, .nav-links a:focus-visible { color: var(--green); }
+      .tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+      .tabs button { background: none; border: 1px solid var(--line); border-radius: 999px; padding: .15rem .8rem; font: inherit; font-size: .8rem; color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+      .tabs button:hover { color: var(--text); border-color: var(--accent-dim); }
+      .tabs button.on { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
 
-      .github-link, .button {
-        display: inline-flex;
-        align-items: center;
-        gap: .55rem;
-        border: 1px solid var(--green-dim);
-        color: var(--green) !important;
-        padding: .55rem .8rem;
-        text-decoration: none;
-        transition: background .18s ease, transform .18s ease;
-      }
-
-      .github-link:hover, .button:hover { background: #79f2a315; transform: translateY(-2px); }
-
-      main { padding: clamp(4rem, 10vw, 8rem) 0 4rem; }
-
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(22rem, .9fr);
-        gap: clamp(2.5rem, 7vw, 6rem);
-        align-items: center;
-      }
-
-      .eyebrow { color: var(--green); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
-      h1 { max-width: 11ch; margin: .65rem 0 1.25rem; font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .98; letter-spacing: -.08em; }
-      .lead { max-width: 36rem; color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem); }
-      .actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2rem; }
-      .button { font-weight: 700; }
-      .button.primary { background: var(--green); color: #061008 !important; }
-      .button.primary:hover { background: #a0ffbd; }
-
-      .terminal {
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: .55rem;
-        background: var(--panel);
-        box-shadow: 0 1.5rem 4rem #00000055;
-      }
-
-      .terminal-bar { display: flex; align-items: center; gap: .45rem; padding: .75rem 1rem; background: var(--panel-strong); border-bottom: 1px solid var(--line); }
-      .dot { width: .65rem; height: .65rem; border-radius: 50%; background: var(--red); }
-      .dot:nth-child(2) { background: var(--yellow); }
-      .dot:nth-child(3) { background: var(--green); }
-      .terminal-title { margin-left: .35rem; color: var(--muted); font-size: .75rem; }
-      .terminal-body { padding: 1.25rem; font-size: clamp(.78rem, 1.5vw, .95rem); }
-      .scoreline { color: var(--yellow); margin-bottom: 1.15rem; white-space: nowrap; }
-      .words { color: var(--muted); line-height: 2.1; }
-      .words .correct { color: var(--green); }
-      .words .wrong { color: var(--red); text-decoration: underline; }
-      .cursor { display: inline-block; width: .58em; height: 1.15em; margin: 0 .08em -.22em; background: var(--green); animation: blink 1s step-end infinite; }
-      .terminal-footer { margin-top: 1.2rem; color: var(--muted); font-size: .76rem; }
-      .terminal-footer kbd { border: 1px solid var(--line); border-bottom-width: 2px; padding: .1rem .3rem; color: var(--text); font-family: inherit; }
-
-      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: clamp(4rem, 10vw, 8rem) 0; background: var(--line); border: 1px solid var(--line); }
-      .stat { padding: 1.25rem; background: var(--panel); }
-      .stat strong { display: block; color: var(--green); font-size: 1.4rem; }
-      .stat span { color: var(--muted); font-size: .78rem; }
-
-      .section-label { color: var(--yellow); font-size: .8rem; }
-      h2 { margin: .45rem 0 2rem; font-size: clamp(1.8rem, 4vw, 3rem); letter-spacing: -.06em; }
-      .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-      .feature { padding: 1.35rem; border: 1px solid var(--line); background: linear-gradient(140deg, var(--panel), #0e1511); }
-      .feature-number { color: var(--green); font-size: .8rem; }
-      .feature h3 { margin: .85rem 0 .45rem; font-size: 1rem; }
-      .feature p { margin: 0; color: var(--muted); font-size: .9rem; }
-
-      .install { margin-top: clamp(4rem, 8vw, 6rem); padding: clamp(1.25rem, 4vw, 2.5rem); border: 1px solid var(--line); background: var(--panel); }
-      .install-grid { display: grid; grid-template-columns: 1fr minmax(16rem, .8fr); gap: 2rem; align-items: center; }
-      .install h2 { margin-bottom: .5rem; }
-      .install p { color: var(--muted); }
-      pre { overflow-x: auto; margin: 0; padding: 1.25rem; border-left: 3px solid var(--green-dim); background: #080c0a; color: var(--text); font: .85rem/1.8 inherit; }
-      code .prompt { color: var(--green); }
-
-      footer { padding: 2rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
-      footer .shell { display: flex; justify-content: space-between; gap: 1rem; }
-      footer a { color: var(--green); }
+      footer { margin: 5rem 0 2rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
 
       @keyframes blink { 50% { opacity: 0; } }
-      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .cursor { animation: none; } }
-      @media (max-width: 760px) {
-        nav { min-height: 4.25rem; }
-        .nav-links a:not(.github-link) { display: none; }
-        .hero, .install-grid { grid-template-columns: 1fr; }
-        .features { grid-template-columns: 1fr; }
-        main { padding-top: 3.5rem; }
-      }
-      @media (max-width: 420px) { .stats { grid-template-columns: 1fr; } footer .shell { display: block; } }
+      @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
     </style>
   </head>
   <body>
-    <header class="shell">
-      <nav aria-label="Primary navigation">
-        <a class="brand" href="#top">ttype</a>
-        <div class="nav-links">
-          <a href="#features">features</a>
-          <a href="#install">install</a>
-          <a class="github-link" href="https://github.com/ParthibanPillay/Ttype">↗ GitHub</a>
-        </div>
+    <div class="shell">
+      <nav>
+        <span class="brand">ttype</span>
+        <a href="https://github.com/ParthibanPillay/Ttype">github ↗</a>
       </nav>
-    </header>
 
-    <main id="top" class="shell">
-      <section class="hero" aria-labelledby="hero-title">
-        <div>
-          <div class="eyebrow">local-first typing tests</div>
-          <h1 id="hero-title">Find your flow in the terminal.</h1>
-          <p class="lead">ttype is a focused, Monkeytype-style typing test built for people who feel at home at a prompt. No accounts, no browser tabs, no distractions.</p>
-          <div class="actions">
-            <a class="button primary" href="#install">$ cargo install</a>
-            <a class="button" href="https://github.com/ParthibanPillay/Ttype">view source ↗</a>
-          </div>
-        </div>
+      <main>
+        <h1>Find your flow in the terminal.</h1>
+        <p class="lead">A Monkeytype-style typing test for people who live at a prompt. Local only: no accounts, no server.</p>
 
         <div class="terminal" aria-label="ttype terminal preview">
-          <div class="terminal-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="terminal-title">ttype — time 30s</span></div>
-          <div class="terminal-body">
-            <div class="scoreline">time 30s&nbsp;&nbsp; 24&nbsp;&nbsp; 84 wpm</div>
-            <div class="words"><span class="correct">quick brown fox jumps over</span> <span class="wrong">the</span> <span class="correct">quiet terminal while</span><br /><span class="correct">fingers find their rhythm and</span> <span class="cursor" aria-hidden="true"></span><br />measure each moment with care</div>
-            <div class="terminal-footer"><kbd>Ctrl+T</kbd> mode&nbsp; <kbd>Ctrl+L</kbd> history&nbsp; <kbd>Tab</kbd> restart</div>
+          <div class="scoreline">time 30s&nbsp;&nbsp; 24s left&nbsp;&nbsp; 84 wpm</div>
+          <div class="words"><span class="correct">quick brown fox jumps over</span> <span class="wrong">the</span> <span class="correct">quiet terminal while</span><br /><span class="correct">fingers find their rhythm and</span> <span class="cursor" aria-hidden="true"></span><br />measure each moment with care</div>
+          <div class="keys"><kbd>Ctrl+T</kbd> mode&nbsp; <kbd>Ctrl+L</kbd> history&nbsp; <kbd>Tab</kbd> restart</div>
+        </div>
+
+        <section>
+          <h2>features</h2>
+          <ul>
+            <li><b>6 modes</b> — 15s, 30s, 60s and 10, 25, 50 words</li>
+            <li><b>4 metrics</b> — wpm, raw, accuracy, consistency</li>
+            <li><b>local history</b> — plain JSONL, personal bests, in-app chart</li>
+          </ul>
+        </section>
+
+        <section id="rust">
+          <h2>install rust</h2>
+          <p class="lead">Needs Rust 1.85 or newer. Skip this if you already have it. On Windows, also install the "Desktop development with C++" workload from Visual Studio Build Tools.</p>
+          <div class="tabs"><button type="button" class="on" data-c="sudo apt update
+sudo apt install -y git build-essential rustup
+rustup default stable">ubuntu</button><button type="button" data-c="sudo apt update
+sudo apt install -y git build-essential rustup
+rustup default stable">debian</button><button type="button" data-c="sudo pacman -S --needed git base-devel rust">arch linux</button><button type="button" data-c="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+. &quot;$HOME/.cargo/env&quot;">linux · curl</button><button type="button" data-c="wget -qO- https://sh.rustup.rs | sh -s -- -y
+. &quot;$HOME/.cargo/env&quot;">linux · wget</button><button type="button" data-c="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+. &quot;$HOME/.cargo/env&quot;">macOS · curl</button><button type="button" data-c="brew install rust">macOS · brew</button><button type="button" data-c="winget install Rustlang.Rustup">windows · winget</button></div>
+          <div class="install">
+            <pre><code><span class="prompt">$ </span>sudo apt update
+<span class="prompt">$ </span>sudo apt install -y git build-essential rustup
+<span class="prompt">$ </span>rustup default stable</code></pre>
+            <button class="copy" type="button" aria-label="Copy commands" title="Copy">
+              <svg class="cp" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <svg class="ok" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="stats" aria-label="Project highlights">
-        <div class="stat"><strong>6 modes</strong><span>15s, 30s, 60s and word-count tests</span></div>
-        <div class="stat"><strong>0 accounts</strong><span>Your data stays local to your machine</span></div>
-        <div class="stat"><strong>4 metrics</strong><span>WPM, raw speed, accuracy, consistency</span></div>
-      </section>
-
-      <section id="features" aria-labelledby="features-title">
-        <div class="section-label">// built for the prompt</div>
-        <h2 id="features-title">Everything you need. Nothing between you and the words.</h2>
-        <div class="features">
-          <article class="feature"><div class="feature-number">01 / FOCUS</div><h3>Terminal-native</h3><p>A responsive Ratatui interface with keyboard-first controls, designed to keep your hands on the keys.</p></article>
-          <article class="feature"><div class="feature-number">02 / SIGNAL</div><h3>Meaningful metrics</h3><p>See correct WPM, raw speed, accuracy, and a per-second consistency measure after each run.</p></article>
-          <article class="feature"><div class="feature-number">03 / MEMORY</div><h3>Local history</h3><p>Finished tests are stored as plain JSONL on your machine, with personal bests and an in-app history chart.</p></article>
-        </div>
-      </section>
-
-      <section id="install" class="install" aria-labelledby="install-title">
-        <div class="install-grid">
-          <div>
-            <div class="section-label">// one command away</div>
-            <h2 id="install-title">Start typing.</h2>
-            <p>Requires Rust 1.85 or newer. Install directly from the cloned repository, then launch <code>ttype</code>.</p>
+        <section id="install">
+          <h2>install ttype</h2>
+          <div class="install">
+            <pre><code><span class="prompt">$ </span>git clone https://github.com/ParthibanPillay/Ttype.git
+<span class="prompt">$ </span>cd Ttype
+<span class="prompt">$ </span>cargo install --path .
+<span class="prompt">$ </span>ttype</code></pre>
+            <button class="copy" type="button" aria-label="Copy commands" title="Copy">
+              <svg class="cp" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              <svg class="ok" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+            </button>
           </div>
-          <pre><code><span class="prompt">$</span> git clone https://github.com/ParthibanPillay/Ttype.git
-<span class="prompt">$</span> cd Ttype
-<span class="prompt">$</span> cargo install --path .
-<span class="prompt">$</span> ttype</code></pre>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
 
-    <footer>
-      <div class="shell"><span>ttype — type with intent.</span><a href="https://github.com/ParthibanPillay/Ttype">github.com/ParthibanPillay/Ttype ↗</a></div>
-    </footer>
+      <footer>ttype — type with intent.</footer>
+    </div>
+    <script>
+      // tabs rewrite the Rust block's code; copy strips the "$ " prompts so a paste runs as-is
+      document.querySelectorAll(".tabs button").forEach((t) => t.onclick = () => {
+        document.querySelectorAll(".tabs button").forEach((o) => o.classList.toggle("on", o === t));
+        t.closest("section").querySelector("code").innerHTML = t.dataset.c.split("\n")
+          .map((l) => '<span class="prompt">$ </span>' + l.replace(/&/g, "&amp;").replace(/</g, "&lt;")).join("\n");
+      });
+      document.querySelectorAll(".copy").forEach((b) => b.onclick = () => {
+        const text = b.parentNode.querySelector("code").textContent.replace(/^\$ /gm, "");
+        navigator.clipboard.writeText(text).then(() => {
+          b.classList.add("done");
+          setTimeout(() => b.classList.remove("done"), 1500);
+        });
+      });
+    </script>
   </body>
 </html>
